@@ -1,3 +1,11 @@
+---
+title: plant_env
+emoji: 🚀
+colorFrom: green
+colorTo: red
+sdk: docker
+---
+
 # Plant Soil Env
 
 OpenEnv environment package for plant-soil simulation.
