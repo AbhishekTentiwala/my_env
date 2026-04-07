@@ -84,13 +84,13 @@ def step_environment(state, action, params, dt=0.01):
     # ----------------------------
     # Reward function
     # ----------------------------
-    w_growth = 2.0   # higher weight
-    w_target = 0.5   # lower weight
-
-    reward = (
-        w_growth * delta_Cp
-        - w_target * error
-    )
+    # The previous reward calculation stagnated because target error was
+    # continuously penalizing the agent at every step with a huge magnitude.
+    # Now, we use raw scale increments for step reward.
+    
+    # Scale delta biomass to a reasonable stepwise value (e.g., multiplier of 10.0
+    # since biomass increment per step dt might be very small)
+    reward = delta_Cp * 10.0
 
     # ----------------------------
     # Termination conditions
@@ -100,12 +100,12 @@ def step_environment(state, action, params, dt=0.01):
     # plant death
     if C_p_new < 1e-4:
         done = True
-        reward -= 1.0
+        reward -= 1.0  # Sparse terminal penalty for death
 
     # success condition
     if C_p_new >= target:
         done = True
-        reward += 1.0
+        reward += 1.0  # Sparse terminal reward for reaching target
 
     # ----------------------------
     # Info dict

@@ -5,12 +5,12 @@ from pydantic import Field
 
 
 class PlantAction(Action):
-    """Normalized control action for one simulation step."""
+    """Raw physical control action for one simulation step."""
 
-    theta_boundary_norm: float = Field(default=0.5, ge=0.0, le=1.0)
-    fertilizer_n_norm: float = Field(default=0.0, ge=0.0, le=1.0)
-    fertilizer_p_norm: float = Field(default=0.0, ge=0.0, le=1.0)
-    fertilizer_k_norm: float = Field(default=0.0, ge=0.0, le=1.0)
+    theta_boundary: float = Field(default=250.0, description="Soil moisture scaling 1-500")
+    fertilizer_N: float = Field(default=10.0, description="Nitrogen fertilizer mapping 1-500")
+    fertilizer_P: float = Field(default=10.0, description="Phosphorus fertilizer mapping 1-500")
+    fertilizer_K: float = Field(default=10.0, description="Potassium fertilizer mapping 1-500")
 
 
 class PlantObservation(Observation):

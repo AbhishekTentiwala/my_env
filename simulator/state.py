@@ -24,22 +24,22 @@ def initialize_env(
     r = np.linspace(r0, R, Nr)
 
     # ----------------------------
-    # Soil water (field-capacity-like starting condition)
+    # Soil water (starts dry, requiring immediate watering)
     # ----------------------------
-    theta = np.ones(Nr) * 0.28
+    theta = np.ones(Nr) * 0.05
 
     # ----------------------------
-    # Nutrients (uniform initial, generic fertile loam profile)
+    # Nutrients (depleted soil profile)
     # ----------------------------
-    C_N = np.ones(Nr) * 0.01   # Nitrogen
-    C_P = np.ones(Nr) * 0.002  # Phosphorus
-    C_K = np.ones(Nr) * 0.006  # Potassium
+    C_N = np.ones(Nr) * 0.001  # Nitrogen
+    C_P = np.ones(Nr) * 0.0005 # Phosphorus
+    C_K = np.ones(Nr) * 0.001  # Potassium
 
     # ----------------------------
-    # Carbon states
+    # Carbon states (young seedling)
     # ----------------------------
-    C_s = 0.15  # storage carbon
-    C_p = 0.25  # structural biomass
+    C_s = 0.02  # storage carbon minimal
+    C_p = 0.05  # structural biomass minimal
 
     # ----------------------------
     # Root system
@@ -69,69 +69,71 @@ def initialize_env(
     }
 
     # ----------------------------
-    # Model parameters (subset)
+# Model parameters (Tomato-like)
     # ----------------------------
     params = {
         "r0": r0,
         "R": R,
         "Nr": Nr,
 
-        # water
-        "Ksat": 3e-6,
-        "theta_s": 0.45,
-        "k_w": 2e-5,
-        "K_w": 0.2,
-        "K_theta": 0.18,
-        "g_max": 0.8,
+        # water (Tomato wants higher water capacity, well-draining)
+        "Ksat": 5e-6,
+        "theta_s": 0.5,
+        "k_w": 3e-5,
+        "K_w": 0.25,
+        "K_theta": 0.2,
+        "g_max": 0.9,
 
         # nutrient transport
         "D_N": 7e-7,
         "D_P": 3e-7,
-        "D_K": 5e-7,
-        "Km_N": 0.02,
-        "Km_P": 0.004,
-        "Km_K": 0.015,
-        "C_boundary_N": 0.01,
-        "C_boundary_P": 0.002,
-        "C_boundary_K": 0.006,
+        "D_K": 6e-7,
+        "Km_N": 0.05,
+        "Km_P": 0.01,
+        "Km_K": 0.04,
+        
+        # Base background nutrients before fertilization (set to 0 so plant depends on action)
+        "C_boundary_N": 0.0,
+        "C_boundary_P": 0.0,
+        "C_boundary_K": 0.0,
 
-        # uptake
-        "Imax_N": 2e-5,
-        "Imax_P": 6e-6,
-        "Imax_K": 1.5e-5,
+        # uptake (Tomatoes are heavy N and K feeders)
+        "Imax_N": 5e-5,
+        "Imax_P": 1e-5,
+        "Imax_K": 4e-5,
 
-        # carbon
-        "k_g": 0.03,
-        "r_m": 0.004,
-        "c_r": 0.01,
+        # carbon (Grow fast)
+        "k_g": 0.05,
+        "r_m": 0.005,
+        "c_r": 0.015,
 
-        # root
-        "k_L": 0.03,
-        "delta_L": 0.003,
-        "gamma_b": 0.02,
-        "K_b": 0.08,
+        # root (Heavy rooting system)
+        "k_L": 0.05,
+        "delta_L": 0.004,
+        "gamma_b": 0.03,
+        "K_b": 0.1,
         "K_U": 5e-9,
 
         # death
         "delta": 0.01,
 
-        # photosynthesis
-        "light_ext_coeff": 0.65,
-        "Vcmax": 2.0,
-        "J": 1.8,
-        "Kc": 0.3,
+        # photosynthesis (Needs lots of sun, highly productive)
+        "light_ext_coeff": 0.7,
+        "Vcmax": 2.5,
+        "J": 2.2,
+        "Kc": 0.35,
 
         # structure carbon
         "alpha": 0.65,
-        "C_crit": 0.04,
+        "C_crit": 0.05,
         "epsilon": 1e-6,
 
         # canopy scaling
-        "c_L": 3.0,
-        "beta": 0.8,
+        "c_L": 3.5,
+        "beta": 0.85,
 
-        # RL objective
-        "target_biomass": 2.5
+        # RL objective (Tomatoes produce huge biomass)
+        "target_biomass": 10.0
     }
 
     return state, params

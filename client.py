@@ -6,7 +6,7 @@ from openenv.core import EnvClient
 from openenv.core.client_types import StepResult
 from openenv.core.env_server.types import State
 
-from .models import PlantAction, PlantObservation
+from models import PlantAction, PlantObservation
 
 
 class PlantEnv(EnvClient[PlantAction, PlantObservation, State]):
@@ -14,10 +14,10 @@ class PlantEnv(EnvClient[PlantAction, PlantObservation, State]):
 
     def _step_payload(self, action: PlantAction) -> Dict:
         return {
-            "theta_boundary_norm": action.theta_boundary_norm,
-            "fertilizer_n_norm": action.fertilizer_n_norm,
-            "fertilizer_p_norm": action.fertilizer_p_norm,
-            "fertilizer_k_norm": action.fertilizer_k_norm,
+            "theta_boundary": action.theta_boundary,
+            "fertilizer_N": action.fertilizer_N,
+            "fertilizer_P": action.fertilizer_P,
+            "fertilizer_K": action.fertilizer_K,
         }
 
     def _parse_result(self, payload: Dict) -> StepResult[PlantObservation]:

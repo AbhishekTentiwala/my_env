@@ -1,5 +1,5 @@
 import numpy as np
-from .root_length import compute_root_growth_rate
+from .root_length import compute_root_growth_rate, compute_total_uptake
 
 def update_storage_carbon(state, params, dt=0.01):
     """
@@ -76,6 +76,15 @@ def update_storage_carbon(state, params, dt=0.01):
     W_j = J * (C_leaf / (4 * (C_leaf + Kc)))
 
     A = min(W_c, W_j) * (1 - np.exp(-k * LAI))
+
+    # ----------------------------
+    # Nutrient Limitation
+    # ----------------------------
+    # Without nutrients, photosynthesis drops (leaves yellow, etc.)
+    U_eff = compute_total_uptake(state, params)["U_eff"]
+    K_U = params.get("K_U", 5e-9) 
+    nutrient_limitation = U_eff / (U_eff + K_U + 1e-12)
+    A *= nutrient_limitation
 
     # ----------------------------
     # Root growth rate (approx)

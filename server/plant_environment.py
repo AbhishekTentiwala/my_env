@@ -26,11 +26,12 @@ class PlantEnvironment(Environment):
         self._params = None
         self._dt = 0.01
         self._max_steps = 1000
+        # Tomato real-world bounds internally mapped to LLM 1-500 scale
         self._action_ranges = {
-            "theta_boundary": (0.01, 0.45),
-            "fertilizer_N": (0.0, 0.02),
-            "fertilizer_P": (0.0, 0.01),
-            "fertilizer_K": (0.0, 0.02),
+            "theta_boundary": (0.01, 0.45), # Soil moisture capacity 
+            "fertilizer_N": (0.0, 0.05),    # Tomatoes are heavy Nitrogen feeders
+            "fertilizer_P": (0.0, 0.02),
+            "fertilizer_K": (0.0, 0.06),    # Heavy Potassium feeders for fruit
         }
 
     def reset(self) -> PlantObservation:
@@ -50,7 +51,22 @@ class PlantEnvironment(Environment):
             self.reset()
 
         self._state.step_count += 1
-        mapped_action = self._map_action(action)
+        
+        def scale_action(val: float, r_min: float, r_max: float) -> float:
+            # Map [1, 500] scale to real physical bounds [r_min, r_max]
+            # Clip to 1-500 first just in case
+            val_clipped = max(1.0, min(500.0, val))
+            # Normalize to 0-1
+            norm = (val_clipped - 1.0) / 499.0
+            return r_min + norm * (r_max - r_min)
+
+        mapped_action = {
+            "theta_boundary": scale_action(action.theta_boundary, self._action_ranges["theta_boundary"][0], self._action_ranges["theta_boundary"][1]),
+            "fertilizer_N": scale_action(action.fertilizer_N, self._action_ranges["fertilizer_N"][0], self._action_ranges["fertilizer_N"][1]),
+            "fertilizer_P": scale_action(action.fertilizer_P, self._action_ranges["fertilizer_P"][0], self._action_ranges["fertilizer_P"][1]),
+            "fertilizer_K": scale_action(action.fertilizer_K, self._action_ranges["fertilizer_K"][0], self._action_ranges["fertilizer_K"][1]),
+        }
+
         self._sim_state, reward, terminated, info = step_environment(
             self._sim_state,
             mapped_action,
@@ -71,18 +87,6 @@ class PlantEnvironment(Environment):
             done=done,
             metadata={"step": self._state.step_count, "action_physical": mapped_action},
         )
-
-    def _map_action(self, action: PlantAction) -> dict:
-        def to_physical(normalized_value: float, lo: float, hi: float) -> float:
-            x = float(np.clip(normalized_value, 0.0, 1.0))
-            return lo + (hi - lo) * x
-
-        return {
-            "theta_boundary": to_physical(action.theta_boundary_norm, *self._action_ranges["theta_boundary"]),
-            "fertilizer_N": to_physical(action.fertilizer_n_norm, *self._action_ranges["fertilizer_N"]),
-            "fertilizer_P": to_physical(action.fertilizer_p_norm, *self._action_ranges["fertilizer_P"]),
-            "fertilizer_K": to_physical(action.fertilizer_k_norm, *self._action_ranges["fertilizer_K"]),
-        }
 
     def _build_observation(
         self,
