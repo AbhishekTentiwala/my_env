@@ -55,27 +55,35 @@ Useful endpoints:
 - API docs: http://localhost:8000/docs
 - Web UI: http://localhost:8000/web
 
+
 ## Docker Build and Run
 
-Build image:
+From the `plant_soil_env` directory, build and run the Docker container:
 
 ```bash
-cd plant_soil_env
+# Build the Docker image
 docker build -t plant_soil_env-env:latest -f Dockerfile .
-```
 
-Run container:
-
-```bash
+# Remove any previous container (ignore errors if not present)
 docker rm -f plant_soil_env_live >/dev/null 2>&1 || true
+
+# Run the container
 docker run -d --name plant_soil_env_live -p 8000:8000 plant_soil_env-env:latest
 ```
 
-Check container status/logs:
+To check if the container is running and view logs:
 
 ```bash
 docker ps --filter name=plant_soil_env_live
 docker logs --tail 60 plant_soil_env_live
+```
+
+You should see log output indicating the server is running on `http://0.0.0.0:8000`.
+
+To verify the server is up:
+
+```bash
+curl -s http://localhost:8000/health
 ```
 
 ## End-to-End Client Smoke Test
