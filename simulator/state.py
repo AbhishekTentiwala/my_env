@@ -1,10 +1,20 @@
 import numpy as np
 
+
+def _to_profile(value, size: int) -> np.ndarray:
+    arr = np.asarray(value, dtype=np.float64)
+    if arr.shape == ():
+        return np.full(size, float(arr), dtype=np.float64)
+    if arr.shape == (size,):
+        return arr.astype(np.float64)
+    raise ValueError(f"Expected scalar or shape ({size},), got {arr.shape}")
+
 def initialize_env(
     Nr=100,
     R=0.1,
     r0=0.002,
-    seed=None
+    seed=None,
+    initial_state_override=None,
 ):
     """
     Initialize RL environment state for plant-soil model.
@@ -69,7 +79,7 @@ def initialize_env(
     }
 
     # ----------------------------
-# Model parameters (Tomato-like)
+    # Model parameters (Tomato-like baseline)
     # ----------------------------
     params = {
         "r0": r0,
@@ -135,5 +145,17 @@ def initialize_env(
         # RL objective (Tomatoes produce huge biomass)
         "target_biomass": 10.0
     }
+
+    if initial_state_override:
+        for key, value in initial_state_override.items():
+            if key in {"theta", "C_N", "C_P", "C_K"}:
+                state[key] = _to_profile(value, Nr)
+            elif key in {"C_s", "C_p", "L", "LAI"}:
+                state[key] = float(value)
+
+        if "LAI" not in initial_state_override:
+            c_l = params.get("c_L", 3.5)
+            beta_local = params.get("beta", 0.85)
+            state["LAI"] = c_l * (state["C_p"] ** beta_local)
 
     return state, params
