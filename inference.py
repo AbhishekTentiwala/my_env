@@ -17,6 +17,8 @@ from openai import OpenAI
 from client import PlantEnv
 from models import PlantAction
 
+import asyncio
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -162,7 +164,7 @@ def _clamp_score_to_open_interval(score: float) -> float:
     return min(max(score, MIN_NON_BOUNDARY_SCORE), MAX_NON_BOUNDARY_SCORE)
 
 
-def run_single_task(client: OpenAI, task_name: str) -> None:
+async def run_single_task(client: OpenAI, task_name: str) -> None:
     history: List[str] = []
     rewards: List[float] = []
     steps_taken = 0
@@ -174,8 +176,8 @@ def run_single_task(client: OpenAI, task_name: str) -> None:
     log_start(task=task_name, env=BENCHMARK, model=MODEL_NAME)
 
     try:
-        with PlantEnv(base_url="http://localhost:8000").sync() as env:
-            result = env.reset(task=task_name, scenario=task_cfg["scenario"])
+        async with PlantEnv(base_url="https://dexter2012-plant-env.hf.space") as env:
+            result = await env.reset(task=task_name, scenario=task_cfg["scenario"])
             obs_obj = result.observation
             obs_dict = obs_obj.model_dump()
             done = False
@@ -192,7 +194,7 @@ def run_single_task(client: OpenAI, task_name: str) -> None:
                     system_prompt,
                 )
 
-                step_result = env.step(action_obj)
+                step_result = await env.step(action_obj)
                 obs_obj = step_result.observation
                 obs_dict = obs_obj.model_dump()
 
@@ -216,7 +218,7 @@ def run_single_task(client: OpenAI, task_name: str) -> None:
     log_grader(task=task_name, score=norm_score)
 
 
-def main() -> None:
+async def main() -> None:
     client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
 
     tasks = TASK_NAMES if len(TASK_NAMES) >= 3 else [
@@ -225,7 +227,7 @@ def main() -> None:
         "plant_growth_hard",
     ]
     for task in tasks:
-        run_single_task(client=client, task_name=task)
+        await run_single_task(client=client, task_name=task)
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
