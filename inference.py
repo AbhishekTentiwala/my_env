@@ -29,7 +29,7 @@ HF_TOKEN = os.getenv("HF_TOKEN") if os.getenv("HF_TOKEN") else os.getenv("API_KE
 
 TASK_NAME = os.getenv("TASK_NAME", "plant_growth")
 BENCHMARK = os.getenv("BENCHMARK", "openenv_plant_environment")
-MAX_STEPS = 1000  # Note: The server allows up to 1000 steps max
+MAX_STEPS = 50  # Note: The server allows up to 1000 steps max
 MAX_TOKENS = 150
 TEMPERATURE = 0.7
 SUCCESS_SCORE_THRESHOLD = 0.1
