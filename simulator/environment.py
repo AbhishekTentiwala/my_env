@@ -6,6 +6,7 @@ from typing import Any
 import numpy as np
 
 from .state import initialize_env
+from .scenarios import get_scenario_config
 from .step import step_environment
 
 
@@ -103,18 +104,38 @@ class PlantEnvironment(EnvBase):
         dt: float = 0.01,
         max_steps: int = 1000,
         normalize_observation: bool = False,
+        scenario: str = "medium",
         action_scale: ActionScale | None = None,
         params_override: dict[str, Any] | None = None,
+        initial_state_override: dict[str, Any] | None = None,
     ):
         super().__init__()
         self._nr = Nr
         self._dt = dt
         self._max_steps = max_steps
         self._normalize_observation = normalize_observation
-        self._action_scale = action_scale or ActionScale()
+        self._scenario = scenario
+        scenario_cfg = get_scenario_config(scenario=scenario)
+
+        if action_scale:
+            self._action_scale = action_scale
+        else:
+            ranges = scenario_cfg.action_ranges
+            self._action_scale = ActionScale(
+                theta_boundary_min=ranges["theta_boundary"][0],
+                theta_boundary_max=ranges["theta_boundary"][1],
+                fertilizer_n_max=ranges["fertilizer_N"][1],
+                fertilizer_p_max=ranges["fertilizer_P"][1],
+                fertilizer_k_max=ranges["fertilizer_K"][1],
+            )
+
+        self._initial_state_override = dict(scenario_cfg.initial_state_override)
+        if initial_state_override:
+            self._initial_state_override.update(initial_state_override)
 
         _, params = initialize_env(Nr=self._nr)
         self.params = params
+        self.params.update(scenario_cfg.params_override)
         if params_override:
             self.params.update(params_override)
 
@@ -144,6 +165,7 @@ class PlantEnvironment(EnvBase):
             R=self.params.get("R", 0.1),
             r0=self.params.get("r0", 0.002),
             seed=seed,
+            initial_state_override=self._initial_state_override,
         )
         params.update(self.params)
         self.params = params
