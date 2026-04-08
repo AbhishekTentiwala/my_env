@@ -25,7 +25,7 @@ load_dotenv()
 # ----------------------------------------------------------------------------
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
-HF_TOKEN = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
+HF_TOKEN = os.getenv("HF_TOKEN") if os.getenv("HF_TOKEN") else os.getenv("API_KEY")
 
 TASK_NAME = os.getenv("TASK_NAME", "plant_growth")
 BENCHMARK = os.getenv("BENCHMARK", "openenv_plant_environment")
